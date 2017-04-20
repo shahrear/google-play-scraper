@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 
-def createTrainingFeature():
+def createTrainingData():
     conn_string = "host='130.15.1.82' dbname='androzoo' user='shahrear' password='$Obscure123'"
     # print the connection string we will use to connect
     print "Connecting to database\n	->%s" % conn_string
@@ -20,7 +20,7 @@ def createTrainingFeature():
 
     try:
         cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute('SELECT id, app_permissions, app_details FROM apps_personal where id between 34 and 36')
+        cursor.execute('SELECT id, app_permissions, app_details FROM apps_personal')
         cursor2 = conn.cursor()
         permissions_all = set()
         updated_rows = 0
@@ -56,51 +56,12 @@ def createTrainingFeature():
     except (Exception, psycopg2.DatabaseError) as error:
         print error
 
-    try:
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cursor.execute('SELECT id, vt_detection, tr_data FROM apps_personal where id between 34 and 36')
-        cursor2 = conn.cursor()
-
-        updated_rows = 0
-        for row in cursor:
-            feature_string = ''
-            app_permissions = str(row['tr_data']).split(',')
-            num_reviews = app_permissions.pop()
-            review_score = app_permissions.pop()
-
-            for perm in perm_all_comma:
-                if perm in app_permissions:
-                    feature_string += '1'
-                else:
-                    feature_string += '0'
-
-                feature_string += ','
-            feature_string += num_reviews
-            if int(row['vt_detection']) > 5:
-                feature_string += '1'
-            else:
-                feature_string += '0'
-
-            sql = """ UPDATE apps_personal SET tr_feature_values = %s WHERE id = %s"""
-
-            cursor2.execute(sql, (feature_string, row['id']))
-            updated_rows += cursor2.rowcount
-
-        print updated_rows
-
-        cursor.close()
-
-        cursor2.close()
-
-    except (Exception, psycopg2.DatabaseError) as error:
-        print error
-
     if conn is not None:
         conn.close()
 
 
 def main():
-    createTrainingFeature()
+    createTrainingData()
 
 if __name__ == "__main__":
     main()
